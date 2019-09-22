@@ -18,7 +18,7 @@ tags:
 
 在这篇文章中，将深入介绍HBase体系结构，和它相较于NoSQL数据存储方案的主要优点。务必要阅读本系列的第一篇文章：[HBase and MapR Database: Designed for Distribution, Scale, and Speed.](https://mapr.com/blog/hbase-and-mapr-db-designed-distribution-scale-and-speed/#.VcKFNflVhBc)
 
-## HBase Architectural Components
+## HBase体系结构
 
 > Physically, HBase is composed of three types of servers in a master slave type of architecture. Region servers serve data for reads and writes. When accessing data, clients communicate with HBase RegionServers directly. Region assignment, DDL (create, delete tables) operations are handled by the HBase Master process. Zookeeper, which is part of HDFS, maintains a live cluster state.
 
@@ -37,22 +37,32 @@ NameNode主要负责记录所有由文件组成的物理数据块的元信息。
 
 
 ## Regions
-HBase Tables are divided horizontally by row key range into “Regions.” A region contains all rows in the table between the region’s start key and end key. Regions are assigned to the nodes in the cluster, called “Region Servers,” and these serve data for reads and writes. A region server can serve about 1,000 regions.
+> HBase Tables are divided horizontally by row key range into “Regions.” A region contains all rows in the table between the region’s start key and end key. Regions are assigned to the nodes in the cluster, called “Region Servers,” and these serve data for reads and writes. A region server can serve about 1,000 regions.
+
+Hbase表按rowkey水平切分形成Region。一个region包含表从startKey到endKey的所有行。Region被分配给集群中的RegionServer，提供该region的数据读写。一个RegionServer可以支持大约1000个region。
 
 ![pic](/img/HBaseArchitecture/HBaseArchitecture-Blog-Fig2.png)
 
 ## HBase HMaster
-Region assignment, DDL (create, delete tables) operations are handled by the HBase Master.
+> Region assignment, DDL (create, delete tables) operations are handled by the HBase Master.
 
-A master is responsible for:
+HBase Master负责region的分配，DDL（数据定义语言，表的增删）操作。
 
-Coordinating the region servers
+> A master is responsible for:
+> Coordinating the region servers
+> - Assigning regions on startup , re-assigning regions for recovery or load balancing
+> - Monitoring all RegionServer instances in the cluster (listens for notifications from zookeeper)
+> Admin functions
+> - Interface for creating, deleting, updating tables
 
-- Assigning regions on startup , re-assigning regions for recovery or load balancing
-- Monitoring all RegionServer instances in the cluster (listens for notifications from zookeeper)
-Admin functions
+Master负责以下操作：
 
-- Interface for creating, deleting, updating tables
+协调所有RegionServer
+- 在启动时分配region，为恢复或负载均衡重新分配region
+- 监控集群中所有RegionServer实例（监听zookeeper的通知）
+
+管理功能
+- 提供创建、删除、更新表的接口
 
 ![pic](/img/HBaseArchitecture/HBaseArchitecture-Blog-Fig3.png)
 
