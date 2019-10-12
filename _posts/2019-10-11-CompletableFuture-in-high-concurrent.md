@@ -14,3 +14,39 @@ tags:
 [JDK-8227018](https://bugs.openjdk.java.net/browse/JDK-8227018)
 
 ![火焰图](../img/CompletableFuture/CompletableFuture-in-jdk8-traces.svg)
+
+```
+import com.google.common.collect.Lists;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+public class FutureTest {
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        new FutureTest().run();
+    }
+
+    private void run() throws ExecutionException, InterruptedException {
+        List<CompletableFuture> futures = Lists.newArrayList();
+        for (int i = 0; i < 1000; i++) {
+            CompletableFuture future = new CompletableFuture();
+            CompletableFuture f = CompletableFuture.runAsync(this::read);
+            f.whenComplete((r, e) -> future.complete(r));
+            futures.add(future);
+        }
+        for (CompletableFuture future : futures) {
+            future.get();
+        }
+    }
+
+    private void read() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
