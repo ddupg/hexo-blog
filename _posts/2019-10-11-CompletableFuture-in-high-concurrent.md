@@ -12,3 +12,5 @@ tags:
 ---
 
 [JDK-8227018](https://bugs.openjdk.java.net/browse/JDK-8227018)
+
+![火焰图](../img/CompletableFuture/CompletableFuture-in-jdk8-traces.svg)
