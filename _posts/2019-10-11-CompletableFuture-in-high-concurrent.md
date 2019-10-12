@@ -50,3 +50,23 @@ public class FutureTest {
     }
 }
 ```
+
+```
+import com.google.common.base.Stopwatch;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.concurrent.TimeUnit;
+
+public class AvailableProcessorsTest {
+
+    @Test
+    public void test() {
+        Stopwatch sw = Stopwatch.createStarted();
+        for (int i = 0; i < 1000000; i++) {
+            Runtime.getRuntime().availableProcessors();
+        }
+        Assert.assertTrue(sw.elapsed(TimeUnit.SECONDS) > 10);
+    }
+}
+```
