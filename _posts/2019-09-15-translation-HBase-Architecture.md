@@ -4,7 +4,6 @@ title:      "「译」深入了解HBase体系结构"
 subtitle:   ""
 date:       2019-09-15 21:00:00
 author:     "Hardbird"
-header-img: "img/HBaseArchitecture/home-bg-o.jpg"
 catalog: true
 tags:
     - HBase
