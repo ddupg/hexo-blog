@@ -1,4 +1,4 @@
-# Hardbird
+# ddupg
 
 该博客是由Jekyll生成，使用[NexT主题](http://jekyllthemes.org/themes/jekyll-theme-next/)，[github](https://github.com/Simpleyyt/jekyll-theme-next)
 

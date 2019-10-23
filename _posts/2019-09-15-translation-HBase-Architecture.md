@@ -3,7 +3,7 @@ layout:     post
 title:      "「译」深入了解HBase体系结构"
 subtitle:   ""
 date:       2019-09-15 21:00:00
-author:     "Hardbird"
+author:     "ddupg"
 catalog: true
 tags:
     - HBase

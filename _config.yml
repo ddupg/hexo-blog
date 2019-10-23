@@ -4,14 +4,14 @@
 # ---------------------------------------------------------------
 
 # Site
-title: Hardbird
+title: Ddupg
 subtitle: 好的代码设计就是，谁看了都觉得就该这么写
 description:
 author: Sun Xin
 # Support language: de, en, fr-FR, id, ja, ko, pt-BR, pt, ru, zh-Hans, zh-hk, zh-tw
 language: en
 date_format: '%Y-%m-%d'
-repository: hardbird/hardbird.github.io
+repository: ddupg/ddupg.github.io
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com' and baseurl as '/child'
@@ -80,7 +80,7 @@ plugins:
 favicon: /assets/favicon.ico
 
 # Set default keywords (Use a comma to separate)
-keywords: "Hardbird"
+keywords: "Ddupg"
 
 # Set rss to false to disable feed link.
 # Leave rss as empty to use site's feed link.
@@ -216,7 +216,7 @@ font:
 # Value is the target link (E.g. GitHub: https://github.com/iissnan)
 #social:
   #LinkLabel: Link
-  GitHub: https://github.com/hardbird
+  GitHub: https://github.com/ddupg
 
 
 # Social Links Icons

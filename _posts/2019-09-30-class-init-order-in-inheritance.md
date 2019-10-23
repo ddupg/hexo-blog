@@ -3,7 +3,7 @@ layout:     post
 title:      "「记」子类复写父类方法与类初始化顺序引发的bug"
 subtitle:   "子类复写父类方法与类初始化顺序引发的bug"
 date:       2019-09-30 10:00:00
-author:     "Hardbird"
+author:     "ddupg"
 header-img: "img/HBaseArchitecture/home-bg-o.jpg"
 catalog: true
 tags:
