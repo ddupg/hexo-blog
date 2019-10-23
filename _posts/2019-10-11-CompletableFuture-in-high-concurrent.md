@@ -57,7 +57,7 @@ public class FutureTest {
 ```
 以上这段代码实际只是让 CompletableFuture 空转，除了 sleep 没再做其他的，循环1000让运行时间尽量长一些，足够让我们跑一个火焰图出来。
 
-![火焰图](../img/CompletableFuture/CompletableFuture-in-jdk8-traces.svg)
+![火焰图](/img/CompletableFuture/CompletableFuture-in-jdk8-traces.svg)
 
 火焰图里注意到有个最大的平顶 java.lang.Runtime.availableProcessors，该方法耗时极大，甚至超过了 Thread.sleep，这可不正常吧。
 
