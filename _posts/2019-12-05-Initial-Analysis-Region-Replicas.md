@@ -12,21 +12,21 @@ tags:
 
 ## 背景
 
-CAP原理中，指出对于一个分布式系统来说，不可能同时满足一致性 (Consistency)、可用性（Availability）、分区容错性（Partition tolerance），而HBase则被设计成一个CP系统，保证了强一致性的同时，牺牲了一定的可用性。
+CAP原理中，指出对于一个分布式系统来说，不可能同时满足一致性 (Consistency)、可用性（Availability）、分区容错性（Partition tolerance），而HBase则被设计成一个CP系统，保证了强一致性的同时，选择牺牲了一定的可用性。
 
-在对HBase的压测中，很容易发现虽然HBase的平均读写延迟很低，但却存在很高的毛刺，P99、P999延迟很高，主要原因则是Region的MTTR（平均修复时间）。一旦某个RegionServer或某个Region出现问题，甚至是一次Full GC，都有可能出现较长时间的不可用，影响可用性。
+在对HBase的压测中，很容易发现虽然HBase的平均读写延迟很低，但却存在很高的毛刺，P99、P999延迟很高，主要的一个影响因素则是Region的MTTR（平均修复时间）较高。一旦某个RegionServer宕机或某个Region出现问题，甚至是一次Full GC，都有可能出现较长时间的不可用，影响可用性。
 
-HBase的Read Region Replicas功能，提供一个或多个Replica Region（备份Region）来支持最终一致性的读请求，在一些不要求强一致性的应用中，可以以此来提高可用性降低读请求延迟。
+HBase的Read Region Replicas功能，提供一个或多个Replica Region（备份Region），在region恢复期间或请求时间过长时，支持最终一致性的读服务。在一些不要求强一致性的应用中，可以通过此功能来提高可用性降低读请求延迟。
 
 ## 设计
 
-在此功能设计中，region被分为两类：Primary Region（主Region），支持读写请求；Replica Region（备份Region），只支持读请求。默认region replication为1，每个region只有1个Primary Region，此时与之前的region模型并无不同。当region replication被设置为2或更多时，Master将会assign所有region的Replica Region，Load Balancer会保证同一个region的多个备份会被分散在不同的RegionServer上。
+在此功能设计中，region被分为两类：Primary Region（主Region），支持读写请求；Replica Region（备份Region），只支持读请求。默认region replication为1，每个逻辑region只有1个Primary Region，此时与之前的region模型并无不同。当region replication被设置为2或更多时，Master将会assign所有region的Replica Region，Load Balancer会保证同一个region的多个备份会被分散在不同的RegionServer上。
 
 对于client端来说，可以决定从任意一个region读取数据，无论这个region是主还是备，但却只能将写请求发送给Primary Region。
 
 对于server端来说，Replica Region为只读模式，接收到写请求会直接抛出异常拒绝，而读请求正常处理，并且会在响应的`Result`中增加`state`标志数据是否来自Replica Region。
 
-如此设计，保证Primary Region依旧可以保证强一致性，多region副本提供读可用性。
+如此设计，保证Primary Region依旧可以保证强一致性，多region副本支持最终一致性的读，在应用可以接受的情况下提高读可用性。
 
 ## 实现
 
@@ -37,6 +37,16 @@ HBase的Read Region Replicas功能，提供一个或多个Replica Region（备�
 ![一个region replication为2的表在meta表中的列](/img/InitialAnalysisRegionReplicas/meta.png "一个region replication为2的表在meta表中的列")
 
 在上图中，是一个region replication为2的表在meta表中info列族下的列，可以看到有一些名为info:xxx_0001的列，这些列存储的数据就是replicaId=1的Replica Region的数据。同理，当region的备份数量更多时，meta表中名为info:xxx_0002、info:xxx_0003的列存储的则为replicaId为2、3的Replica Region的数据。
+
+明白了meta表中是如何存储Replica Region数据，client要获取Replica Region所在的RegionServer自然也简单，多解析几个server_xxxx的列便可以了。
+
+![client访问Replica Region](/img/InitialAnalysisRegionReplicas/client-read-replicas.png "client访问Replica Region")
+
+上图展示的是client访问Replica Region的示意图。HBase的读请求有两种，Get和Scan。对于Get这种无状态的请求，每次RPC对server端来说都是一次独立的请求。client端的用户可以多次超时重试，直到获取到数据；也可以并发请求多个replica，选择率先返回的数据；还可以请求Primary Region超时之后再请求其他Replica Region。但对于Scan这种有状态的请求，一次scan可能与同一个region交互多次，也可能跨多个region多个RegionServer请求数据，server端会记录每个scan的状态数据，那么一次scan产生的多次RPC便不能随意地发给所有的replica。
+
+![client scan过程](/img/InitialAnalysisRegionReplicas/client_scan_replicas.png "client scan过程")
+
+上图展示的是client执行一个跨region的scan过程，假设当前表有2个逻辑region（Region_A和Region_B）分布在4个RegionServer上，region的起始区间分别为[a, d)、[d, f)，且该表的region replication为2，即每个逻辑region都有一主一备。当我们执行一次scan操作，设置cacheing为2（每次RPC最多获取2个Result），则scan至少进行4次RPC，图中连线则表示每次RPC，连线上的数字表示RPC的顺序编号，虚线表示RPC超时或返回太慢结果没有被采用。可以看到当client要进行第1次RPC时，将请求同时发给了Region_A的主备2个region，因为此时server端是没有任何关于此次scan的状态数据，client可以选择率先返回响应的region进行后续的RPC交互。当第2次RPC时便不可以随意选择region了，因为Region_A_primary存储了此次scan的状态数据，而Region_A_replica_1没有，如果请求Region_A_replica_1则只会抛出异常。当第2次RPC结束，已经获取了Region_A中的全部数据，便可以清理掉Region_A_primary中存储的状态数据了。当第3次RPC时，和第1次时情况有些类似，server端暂时没有存储scan的状态数据了，client便可以像第1次RPC一样，将请求同时发给了Region_A的主备2个region。第4次RPC则像第2次一样。
 
 ### 数据同步
 
@@ -157,7 +167,7 @@ if (result.isStale()) {
 
 ## 总结
 
-`Region Replica`功能可以提供HBase的读可用性，但也要根据具体的用例考虑是否适用。
+`Region Replica`功能可以提高HBase的读可用性，但也要根据具体的用例考虑是否适用。
 
 ### 优点
 
