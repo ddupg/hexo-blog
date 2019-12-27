@@ -27,7 +27,7 @@ primary region，支持读写请求；secondary region，只支持读请求。�
 ## Timeline Consistency
 
 在该功能的实现中，HBase提供了一种支持**单次读请求**的一致性定义。
-```
+```Java
 public enum Consistency {
     STRONG,
     TIMELINE
@@ -63,7 +63,7 @@ HBase默认的就是`Consistency.STRONG`强一致性模型，与之前的模型�
 
 ![client访问secondary region](/img/InitialAnalysisRegionReplicas/client-read-replicas.png "client访问secondary region")
 
-上图展示的是client访问secondary region的示意图。HBase的读请求有两种，Get和Scan。对于Get这种无状态的请求，每次RPC对server端来说都是一次独立的请求。client端的用户可以多次超时重试，直到获取到数据；也可以并发请求多个replica，选择率先返回的数据；还可以请求primary region超时之后再请求其他secondary region。但对于Scan这种有状态的请求，一次scan可能与同一个region交互多次，也可能跨多个region多个RegionServer请求数据，server端会记录每个scan的状态数据，那么一次scan产生的多次RPC便不能随意地发给所有的replica。
+上图展示的是client访问secondary region的示意图。HBase的读请求有两种，Get和Scan。对于Get这种无状态的请求，每次RPC对server端来说都是一次独立的请求。client端的用户可以多次超时重试，直到获取到数据；也可以并发请求多个replica，选择率先返回的数据；还可以使用TIMELINE Read，请求primary region超时之后再请求其他secondary region。但对于Scan这种有状态的请求，一次scan可能与同一个region交互多次，也可能跨多个region多个RegionServer请求数据，server端会记录每个scan的状态数据，那么一次scan产生的多次RPC便不能随意地发给所有的replica。
 
 ![client scan过程](/img/InitialAnalysisRegionReplicas/client_scan_replicas.png "client scan过程")
 
@@ -109,7 +109,7 @@ primary region还会将flush、compaction和bulk load事件写到WAL，同样由
 
 #### replication不能同步meta表数据
 
-目前的Async WAL Replication功能并不能同步meta表的WAL数据。所以对于meta表的操作，并不能通过replication尽快的同步到secondary region，只能通过类似于`StoreFile Refresher`的方式，使用定时刷新的任务来同步meta表HFile文件的变化。
+目前的Async WAL Replication功能并不能同步meta表的WAL数据（最初该功能是用于集群间同步数据的，毕竟不能把meta数据同步给其他集群）。所以对于meta表的操作，并不能通过replication尽快的同步到secondary region，只能通过类似于`StoreFile Refresher`的方式，使用定时刷新的任务来同步meta表HFile文件的变化。
 
 `hbase.regionserver.meta.storefile.refresh.period`配置项用于控制meta表StoreFile的更新时间。该配置项并不同于`StoreFile Refresher`功能的`hbase.regionserver.storefile.refresh.period`。
 
@@ -136,20 +136,19 @@ primary region还会将flush、compaction和bulk load事件写到WAL，同样由
 | hbase.regionserver.storefile.refresh.period                | 0                            | 毫秒                   | secondary region刷新storefile的时间间隔，默认0为关闭    |
 | hbase.regionserver.meta.storefile.refresh.period           | 0                            | 毫秒                   | secondary region刷新hbase:meta表storefile的时间间隔，默认0为关闭     |
 | hbase.region.replica.replication.enabled                   | false    |   | 是否开启`Asnyc WAL replication`功能，开启后再想关闭，需要改为false之后再disable掉`region_replica_replication`的peer   |
-| hbase.master.hfilecleaner.ttl                              | 300000(5分钟)                | ms                     | storefile文件的过期删除时间间隔    |
+| hbase.master.hfilecleaner.ttl                              | 300000(5分钟)                | 毫秒                     | storefile文件的过期删除时间间隔    |
 | hbase.meta.replica.count                                   | 1                            | 个                     | meta表的region replication数量   |
 | hbase.region.replica.storefile.refresh.memstore.multiplier | 4   | 倍  | secondary region的MemStore大于同RegionServer上primary region最大的MemStore该倍数时，会触发刷新storefile文件列表的任务 |
 | hbase.region.replica.wait.for.primary.flush                | true                         |                        | secondary region open之后，是否要等待primary region进行一次flush再提供服务   |
-| hbase.master.loadbalancer.class    | StochasticLoadBalancer.class | 字符串，Balancer的类名 | 默认的实现可以保证region的replicas尽量不会分布在同一个RegionServer上，如果修改该配置，要注意replicas的分布   |
+| hbase.master.loadbalancer.class    | org.apache.hadoop.hbase.master.balancer.StochasticLoadBalancer |  | 默认的实现可以保证region的replicas尽量不会分布在同一个RegionServer上，如果修改该配置，要注意replicas的分布   |
 
 
 **client端**
 
 | 配置项                                    | 默认值 | 单位 | 描述                                                                                                          |
 | ----------------------------------------- | ------ | ---- | ------------------------------------------------------------------------------------------------------------- |
-| hbase.ipc.client.specificThreadForWriting | false  |      |                                                                                                               |
+| hbase.ipc.client.specificThreadForWriting | false  |      | 是否使用特殊线程用于写请求。使用region replicas功能，经常会在IO过程中中断线程，所以必须开启该配置 |
 | hbase.client.primaryCallTimeout.get       | 10000  | 微秒 | TIMELINE一致性Get时，等待primary region响应的时间，超时之后便请求secondary region                             |
-| hbase.client.primaryCallTimeout.multiget  | 10000  | 微秒 | （目前没用，还没有实现）TIMELINE一致性批量Get时，等待primary region响应的时间，超时之后便请求secondary region |
 | hbase.client.primaryCallTimeout.scan      | 10000  | 微秒 | TIMELINE一致性Scan时，等待primary region响应的时间，超时之后便请求secondary region                            |
 | hbase.meta.replicas.use                   | false  |      | 是否使用meta表的secondary region                                                                              |
 
@@ -168,8 +167,8 @@ alter 't1', {REGION_REPLICATION => 2}
 
 ### Client
 
-Client访问secondary region必须要用户明确的表示可以接收非强一致性的数据，HBase为此提供了一个`Consistency`枚举，请求默认都是`STRONG`的一致性，如果希望请求可以发送给secondary region，必须明确指定为`TIMELINE`的一致性。
-```
+Client访问secondary region必须要用户明确的表示可以接收非强一致性的数据，如果希望请求可以发送给secondary region，必须明确指定为`TIMELINE`的一致性。
+```Java
 public enum Consistency {
     STRONG,
     TIMELINE
@@ -230,7 +229,5 @@ if (result.isStale()) {
 ## 参考
 
 - [Timeline-consistent High Available Reads](http://hbase.apache.org/book.html#arch.timelineconsistent.reads)
-- [Phase 1 Design HBASE-10070](https://issues.apache.org/jira/browse/HBASE-10070)
-- [Phase 2 Design HBASE-11183](https://issues.apache.org/jira/browse/HBASE-11183)
+- [HBASE-10070](https://issues.apache.org/jira/browse/HBASE-10070)
 - [HighAvailabilityDesignforreadsApachedoc.pdf](https://issues.apache.org/jira/secure/attachment/12616659/HighAvailabilityDesignforreadsApachedoc.pdf)
-- [An In-Depth Look at the HBase Architecture](https://mapr.com/blog/in-depth-look-hbase-architecture/)
