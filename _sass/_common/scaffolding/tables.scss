@@ -7,10 +7,16 @@ table {
   font-size: $table-font-size;
   table-layout: auto;
   word-wrap: break-all;
+  max-width: 65em;
+  empty-cells: show;
 }
 table>tbody>tr {
   &:nth-of-type(odd) { background-color: $table-row-odd-bg-color; }
   &:hover { background-color: $table-row-hover-bg-color; }
+}
+
+table th {
+  white-space: nowrap; /*表头内容强制在一行显示*/
 }
 
 caption, th, td {
