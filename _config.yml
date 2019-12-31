@@ -440,7 +440,7 @@ gitalk:
   enable: true
   clientID: 1dbc316f8f5fd58b171a
   clientSecret: b1d7ecdf7193e4c74bd3749fd707839d851c8eef
-  repo: ddupg.github.io
+  repo: ddupg.gitalk.comment
   owner: ddupg
   admin: ddupg
   distraction_free_mode: true
