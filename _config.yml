@@ -437,12 +437,15 @@ changyan:
 
 # Support for gitalk comments system.
 gitalk:
-  enable: false
-  clientID: # 54730ddf7b9420460c03
-  clientSecret: # c05684701b25ff1c19ea0c01ce4d80c125e0707d
-  repo: # colingpt.github.io
-  owner: # colingpt
-  admin: # colingpt
+  enable: true
+  clientID: 1dbc316f8f5fd58b171a
+  clientSecret: b1d7ecdf7193e4c74bd3749fd707839d851c8eef
+  repo: ddupg.github.io
+  owner: ddupg
+  admin: ddupg
+  distraction_free_mode: true
+  language: zk-CN
+  lables: Gitalk
 
 # Baidu Share
 # Available value:
