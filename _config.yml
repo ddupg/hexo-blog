@@ -9,7 +9,7 @@ subtitle: 好的代码设计就是，谁看了都觉得就该这么写
 description:
 author: ddupg
 # Support language: de, en, fr-FR, id, ja, ko, pt-BR, pt, ru, zh-Hans, zh-hk, zh-tw
-language: en
+language: zh-Hans
 date_format: '%Y-%m-%d'
 repository: ddupg/ddupg.github.io
 
