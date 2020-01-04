@@ -1,9 +1,7 @@
-# ddupg
+# ddupg.github.io
 
-该博客是由Jekyll生成，使用[NexT主题](http://jekyllthemes.org/themes/jekyll-theme-next/)，[github](https://github.com/Simpleyyt/jekyll-theme-next)
+该项目是使用Hexo NexT主题实现的Github Pages博客。
 
-[NexT使用文档](http://theme-next.simpleyyt.com/)
-
-关于使用Github Pages搭建博客的方法，建议参考[官方文档](https://pages.github.com/)。主题可以不用局限于文档提供的几个，Jekyll支持更多[丰富的主题](http://jekyllthemes.org/)
-
-环境配置过程中，注意[Github Pages依赖及对应版本](https://pages.github.com/versions/)。避免因依赖版本问题导致构建出错。
+[Hexo Next](https://github.com/theme-next/hexo-theme-next)
+[Hexo NexT 博客增加知乎豆瓣图标支持](https://blog.dlzhang.com/posts/89dad1c1/)
+[Hexo 摘要](https://github.com/chekun/hexo-excerpt)
