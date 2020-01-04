@@ -12,6 +12,8 @@ tags:
 
 [TED视频链接](https://www.ted.com/talks/claire_wardle_how_you_can_help_transform_the_internet_into_a_place_of_trust/)
 
+<!-- more -->
+
 No matter who you are or where you live, I'm guessing that you have at least one relative that likes to forward those emails. You know the ones I'm talking about -- the ones with dubious claims or conspiracy videos. And you've probably already muted them on Facebook for sharing social posts like this one. 
 
 It's an image of a banana with a strange red cross running through the center. And the text around it is warning people not to eat fruits that look like this, suggesting they've been injected with blood contaminated with the HIV virus. And the social share message above it simply says, "Please forward to save lives." Now, fact-checkers have been debunking this one for years, but it's one of those rumors that just won't die. A zombie rumor. And, of course, it's entirely false. 

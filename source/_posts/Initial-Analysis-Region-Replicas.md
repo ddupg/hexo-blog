@@ -24,6 +24,8 @@ HBase的Read Region Replicas功能，提供一个或多个副本，在region恢�
 
 primary region，支持读写请求；secondary region，只支持读请求。如此设计保证primary region依旧具有强一致性，同时提高读可用性。但也因为写请求只有primary region可以处理，所以写请求依然会因为primary region不可用而被阻塞，HBase的写可用性依然没有得到改善。
 
+<!-- more -->
+
 ## Timeline Consistency
 
 在该功能的实现中，HBase提供了一种支持**单次读请求**的一致性定义。

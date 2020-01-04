@@ -18,6 +18,8 @@ tags:
 
 使用 Java 异步编程的时候，CompletableFuture 用起来还是相当舒服的，在HBase的异步API里，也大量的使用了CompletableFuture，如果 CompletableFuture 有性能问题，那可就悲催了。
 
+<!--more-->
+
 看下以下这段测试CompletableFuture的代码
 
 ```

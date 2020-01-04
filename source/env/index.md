@@ -1,13 +1,9 @@
 ---
-layout:     post
-title:      "开发环境常用配置"
-subtitle:   ""
-date:       2019-09-20 21:00:00
-author:     "Ddupg"
-header-img: ""
-catalog: true
-tags:
-    - 开发环境
+title: 开发环境常用配置
+date: 2020-01-04 14:39:54
+loyout: page
+author: Ddupg
+commonts: false
 ---
 
 ## 机器环境
