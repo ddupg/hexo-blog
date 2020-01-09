@@ -17,6 +17,22 @@ tags:
 
 No matter who you are or where you live, I'm guessing that you have at least one relative that likes to forward those emails. You know the ones I'm talking about -- the ones with dubious claims or conspiracy videos. And you've probably already muted them on Facebook for sharing social posts like this one. 
 
+> [relative](https://fanyi.baidu.com/#en/zh/relative)  [ˈrelətɪv]  
+> adj. 相比较而言的;比较的;相对的;相关联的;相比之下存在(或有)的  
+> n. 亲戚;亲属;同类事物
+
+> [dubious](https://fanyi.baidu.com/#en/zh/dubious) [ˈduːbiəs]  
+> adj. 怀疑;无把握;拿不准;可疑的;不可信的;靠不住的;不诚实的;不确定的;不一定好的
+
+> [conspiracy](https://fanyi.baidu.com/#en/zh/conspiracy) [kənˈspɪrəsi]  
+> n. 密谋策划;阴谋
+
+> [mute](https://fanyi.baidu.com/#en/zh/mute) [mjuːt]  
+> adj. 沉默的;不出声的;无声的;哑的  
+> n. 弱音器;哑巴  
+> v. 消音;减音;减弱(尤指乐器)的声音;减弱;缓解  
+> 这里是**屏蔽**的意思
+
 It's an image of a banana with a strange red cross running through the center. And the text around it is warning people not to eat fruits that look like this, suggesting they've been injected with blood contaminated with the HIV virus. And the social share message above it simply says, "Please forward to save lives." Now, fact-checkers have been debunking this one for years, but it's one of those rumors that just won't die. A zombie rumor. And, of course, it's entirely false. 
 
 It might be tempting to laugh at an example like this, to say, "Well, who would believe this, anyway?" But the reason it's a zombie rumor is because it taps into people's deepest fears about their own safety and that of the people they love. And if you spend as enough time as I have looking at misinformation, you know that this is just one example of many that taps into people's deepest fears and vulnerabilities. 
