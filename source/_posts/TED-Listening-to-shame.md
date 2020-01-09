@@ -18,14 +18,27 @@ I'm going to tell you a little bit about my TEDxHouston Talk. I woke up the morn
 > [vulnerability](https://fanyi.baidu.com/#en/zh/vulnerability)  [ˌvʌlnərə'bɪləti]  
 > n. 弱点;脆弱性;易伤性;可捕性
 
-> [hangover](https://fanyi.baidu.com/#en/zh/hangover)  [ˈhæŋoʊvər]
+> [hangover](https://fanyi.baidu.com/#en/zh/hangover)  [ˈhæŋoʊvər]  
 > n. 宿醉;遗留的感觉;沿袭下来的风俗(或思想等)
 
 The first time I left was to meet a friend for lunch. And when I walked in, she was already at the table. I sat down, and she said, "God, you look like hell." I said, "Thanks. I feel really -- I'm not functioning." And she said, "What's going on?" And I said, "I just told 500 people that I became a researcher to avoid vulnerability. And that when being vulnerable emerged from my data, as absolutely essential to whole-hearted living, I told these 500 people that I had a breakdown. I had a slide that said 'Breakdown.' At what point did I think that was a good idea?"
 
+> emerge from  [iˈmɜːrdʒ frəm]  
+> （从…）露出，浮现;〈正〉来自，产生于，脱离  
+> emerge from my data 我的数据表明
+
+> essential [ɪˈsenʃl]  
+> adj. 完全必要的;必不可少的;极其重要的;本质的;基本的;根本的  
+> n. 必不可少的东西;必需品;要点;要素;实质  
+
+> slideshow  幻灯片  
+> make a slideshow, slide理解为一张幻灯片
+
 (Laughter)
 
 And she said, "I saw your talk live-streamed. It was not really you. It was a little different than what you usually do. But it was great." And I said, "This can't happen. YouTube, they're putting this thing on YouTube. And we're going to be talking about 600, 700 people."
+
+> live-streamed 直播
 
 (Laughter)
 
