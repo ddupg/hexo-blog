@@ -7,6 +7,7 @@
 ```
 npm install hexo --save
 npm install hexo-generator-searchdb
+npm install hexo-generator-sitemap --save
 ```
 
 **参考资料**
