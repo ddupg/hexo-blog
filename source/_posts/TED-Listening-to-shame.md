@@ -76,6 +76,8 @@ Then I looked at her and I said something that at the time felt a little dramati
 
 I had no contingency plan for four million.
 
+> contingency [kənˈtɪndʒənsi] plan 应急方案
+
 (Laughter)
 
 And my life did end when that happened. And maybe the hardest part about my life ending is that I learned something hard about myself, and that was that, as much as I would be frustrated about not being able to get my work out to the world, there was a part of me that was working very hard to engineer staying small, staying right under the radar. But I want to talk about what I've learned.
