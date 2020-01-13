@@ -8,6 +8,7 @@ catalog: true
 tags:
     - HBase
     - Region Replicas
+categories: HBase
 ---
 
 ## 背景

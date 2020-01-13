@@ -9,6 +9,7 @@ catalog: true
 tags:
     - bug
     - Java
+categories: Java
 ---
 
 ## bug现象

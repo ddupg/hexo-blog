@@ -9,6 +9,7 @@ catalog: true
 tags:
     - Jdk
     - Java
+categories: Java
 ---
 
 最近的工作内容就是写一个 DualHBaseClient，在查询数据时间过长时，能够将同样的请求发给 replication 的集群，缩小 client 端的 p99、p999 延迟，减小毛刺。
