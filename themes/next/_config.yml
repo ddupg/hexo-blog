@@ -647,7 +647,7 @@ livere_uid: # <your_uid>
 gitalk:
   enable: true
   github_id: ddupg # GitHub repo owner
-  repo: git@ddupg.github.com:ddupg/ddupg.github.io.git # Repository name to store issues
+  repo: ddupg.github.io # Repository name to store issues
   client_id: 1dbc316f8f5fd58b171a # GitHub Application Client ID
   client_secret: b1d7ecdf7193e4c74bd3749fd707839d851c8eef # GitHub Application Client Secret
   admin_user: ddupg # GitHub repo owner and collaborators, only these guys can initialize gitHub issues
