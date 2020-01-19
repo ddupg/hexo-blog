@@ -15,7 +15,7 @@ categories: HBase
 
 CAP原理中，指出对于一个分布式系统来说，不可能同时满足一致性 (Consistency)、可用性（Availability）、分区容错性（Partition tolerance），而HBase则被设计成一个CP系统，保证了强一致性的同时，选择牺牲了一定的可用性。
 
-在对HBase的压测中，很容易发现虽然HBase的平均读写延迟很低，但却存在很高的毛刺，P99、P999延迟很高，主要的一个影响因素则是Region的MTTR（平均修复时间）较高。一旦某个RegionServer宕机或某个Region出现问题，甚至是一次Full GC，都有可能出现较长时间的不可用，影响可用性。
+在对HBase的压测中，很容易发现虽然HBase的平均读写延迟很低，但却存在很高的毛刺，P99、P999延迟很高，主要的一个影响因素则是单点的GC，另外Region的MTTR（平均修复时间）也较高，一旦某个RegionServer宕机或某个Region出现问题，甚至是一次Full GC，都有可能出现较长时间的不可用，影响可用性。
 
 HBase的Read Region Replicas功能，提供一个或多个副本，在region恢复期间或请求时间过长时，支持最终一致性的读服务。在一些不要求强一致性的应用中，可以通过此功能来提高可用性降低读请求延迟。
 
@@ -90,11 +90,11 @@ secondary region要支持读请求，则必然要有数据，而secondary region
 
 如果要开启这个功能，只要将`hbase.regionserver.storefile.refresh.period`配置设置为非零值即可，表示StorefileRefresherChore任务刷新的时间间隔。
 
-#### Asnyc WAL replication
+#### Asynchronous Replication
 
 HBase有提供集群间replication功能，利用WAL在多个集群之间同步数据。在HBase-1.1+版本中，便利用replication在集群内部同步数据，将实时写入的WAL同步到secondary region。
 
-![Asnyc WAL replication示意图](/images/InitialAnalysisRegionReplicas/region_replica_replication.png "Asnyc WAL replication 示意图")
+![Asynchronous Replication示意图](/images/InitialAnalysisRegionReplicas/region_replica_replication.png "Asynchronous Replication 示意图")
 
 如上图中所示，通过实现一个特殊的`ReplicationEndpoint`便可以将WAL的数据同步给集群中的其他RegionServer。如此primary region MemStore中的数据，也通过replication实时同步到secondary region，从secondary region中也可以读到primary region还没有flush到HFile的数据。所以利用`Asnyc WAL replication`的同步方式比上面讲到的`StoreFile Refresher`同步方式具有更低的同步延迟。
 
@@ -112,13 +112,13 @@ primary region还会将flush、compaction和bulk load事件写到WAL，同样由
 
 #### replication不能同步meta表数据
 
-目前的Async WAL Replication功能并不能同步meta表的WAL数据（最初该功能是用于集群间同步数据的，毕竟不能把meta数据同步给其他集群）。所以对于meta表的操作，并不能通过replication尽快的同步到secondary region，只能通过类似于`StoreFile Refresher`的方式，使用定时刷新的任务来同步meta表HFile文件的变化。
+目前的Asynchronous Replication功能并不能同步meta表的WAL数据（最初该功能是用于集群间同步数据的，毕竟不能把meta数据同步给其他集群）。所以对于meta表的操作，并不能通过replication尽快的同步到secondary region，只能通过类似于`StoreFile Refresher`的方式，使用定时刷新的任务来同步meta表HFile文件的变化。
 
 `hbase.regionserver.meta.storefile.refresh.period`配置项用于控制meta表StoreFile的更新时间。该配置项并不同于`StoreFile Refresher`功能的`hbase.regionserver.storefile.refresh.period`。
 
 #### 内存消耗
 
-在之前已经提到，Async WAL Replication同步因为使用MemStore和block cache，会导致内存开销成倍增加。并且secondary region并不会主动进行flush，只会当接收到同步的WAL中的flush事件时，才会进行flush。在一些极端情况下，比如replication阻塞收不到flush事件、primary region确实长时间没有进行flushsecondaryarRegion持有的内存得不到释放，而一个RegionServer上同时有多个primary region和secondary region，内存的过度消耗可能会阻塞primary region正常的写入操作，也会阻塞replication同步的flush事件。
+在之前已经提到，Asynchronous Replication同步因为使用MemStore和block cache，会导致内存开销成倍增加。并且secondary region并不会主动进行flush，只会当接收到同步的WAL中的flush事件时，才会进行flush。在一些极端情况下，比如replication阻塞收不到flush事件、primary region确实长时间没有进行flushsecondaryarRegion持有的内存得不到释放，而一个RegionServer上同时有多个primary region和secondary region，内存的过度消耗可能会阻塞primary region正常的写入操作，也会阻塞replication同步的flush事件。
 
 所以HBase提供了一个配置项`hbase.region.replica.storefile.refresh.memstore.multiplier`，默认值为4，表示如果secondary region的MemStore比primary region最大的MemStore的4倍还要大时，便允secondaryarRegion自行refresh检查HFile文件是否变化，如果primary region早已flush过，却因为replication阻塞没有同步到，则可以利用该机制进行flush。默认情况下最好不要执行这个操作，可以把该配置项设置大一些来避免。
 
@@ -211,6 +211,52 @@ if (result.isStale()) {
   ...
 }
 ```
+
+## 性能测试
+
+**机器配置**
+
+HBase版本：2.2.0  
+HDFS版本： 3.1.4
+
+| service | job           | 实例数  | cpu     | disk        | netowork | comment                |
+| ------- | ------------- | ------ | ------- | ----------- | -------- | ---------------------- |
+| HBase   | master        | 2      | -       | -           | -        | -                      |
+| HBase   | region server | 5      | 24 core | 12*3.7T HDD | 10000bps | onheap=50g/offheap=50g |
+| HDFS    | namenode      | 2      | -       | -           | -        | onheap=10g             |
+| HDFS    | datanode      | 5      | 24 core | 12*3.7T HDD | 10000bps | onheap=2g              |
+
+**不限制QPS**
+
+|                  | strong    | timeline-10ms | reta    |
+| ---------------- | --------- | ------------- | ------- |
+| qps_sec          | 12608.23  | 11171.18      | -11.4%  |
+| max_latency_us   | 195174.38 | 202603.69     | 3.81%   |
+| min_latency_us   | 149.38    | 148.75        | -0.42%  |
+| avg_latency_us   | 3760.69   | 4276.76       | 13.72%  |
+| p90_latency_us   | 11811.92  | 14258.31      | 20.71%  |
+| p99_latency_us   | 32512.23  | 31148.14      | -4.2%   |
+| p999_latency_us  | 64646.38  | 58621.93      | -9.32%  |
+| p9999_latency_us | 136835.92 | 115951.63     | -15.26% |
+
+**限制7000QPS**
+
+|                  | strong    | timeline-10ms | reta    |
+| ---------------- | --------- | ------------- | ------- |
+| qps_sec          | 6999.58   | 6999.56       | -0.0%   |
+| max_latency_us   | 126860.75 | 130148.86     | 2.59%   |
+| min_latency_us   | 147.25    | 150.68        | 2.33%   |
+| avg_latency_us   | 3223.38   | 3495.51       | 8.44%   |
+| p90_latency_us   | 10612.49  | 11379.48      | 7.23%   |
+| p99_latency_us   | 23793.54  | 24469.25      | 2.84%   |
+| p999_latency_us  | 48791.00  | 39795.06      | -18.44% |
+| p9999_latency_us | 93389.08  | 78618.61      | -15.82% |
+
+对单Client实例做压力测试，`hbase.client.primaryCallTimeout.get`参数设置为10000，即等待primary region响应的时间超时10ms之后便请求secondary region。
+
+第一组极限QPS的压测中，可以看出开启TIMELINE Read之后，QPS有一定损失，平均延迟有一定升高，P999和P9999一定程度优化。优化效果有限。
+
+因为read replicas会增加线程资源的使用，而日常使用也不会把Client侧压到极限，所以又做了一组限制QPS的压测，可以看到各项延迟指标均有所好转。
 
 ## 总结
 
