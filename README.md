@@ -6,9 +6,12 @@
 
 ```
 npm install hexo --save
-npm install hexo-generator-searchdb
-npm install hexo-generator-sitemap --save
-npm install hexo-tag-bilibili
+npm install hexo-generator-searchdb # 搜索
+npm install hexo-generator-sitemap --save # 生成sitemap
+npm install hexo-tag-bilibili # b站视频
+
+npm install hexo-generator-index2 --save
+npm uninstall hexo-generator-index --save
 ```
 
 **参考资料**
@@ -17,3 +20,4 @@ npm install hexo-tag-bilibili
 - [Hexo 摘要](https://github.com/chekun/hexo-excerpt)
 - [fontawesome图标](https://fontawesome.com/)
 - [Hexo博客添加Bilibili视频标签](https://normalhh.com/2016/01/22/Hexo%E5%8D%9A%E5%AE%A2%E6%B7%BB%E5%8A%A0Bilibili%E8%A7%86%E9%A2%91%E6%A0%87%E7%AD%BE/)
+- [首页过滤文章插件](https://github.com/Jamling/hexo-generator-index2)
