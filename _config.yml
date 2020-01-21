@@ -112,4 +112,12 @@ index2_generator:
 #  include:
 #    - tag Web # 只包含Web标签下的文章
   exclude:
-    - category English # 不包含分类为Hexo的文章
+    - category English
+
+# 自定义category配置
+custom_category_generator:
+  per_page: 10
+  order_by: -date
+  custom_config:
+    English: 
+      layout: category_lite
