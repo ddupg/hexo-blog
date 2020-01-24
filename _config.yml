@@ -121,3 +121,5 @@ custom_category_generator:
   custom_config:
     English: 
       layout: category_lite
+    MySQL学习笔记:
+      layout: index
