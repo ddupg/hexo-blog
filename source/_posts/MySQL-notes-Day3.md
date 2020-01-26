@@ -1,10 +1,14 @@
 ---
-title: MySQL notes Day3：MySQL事务隔离
+title: MySQL 学习笔记 Day3：MySQL事务隔离
 date: 2020-01-26 12:57:27
 tags: MySQL
 categories:
     MySQL学习笔记
 ---
+
+极客时间MySQL实战45讲 [03 | 事务隔离：为什么你改了我还看不见？](https://time.geekbang.org/column/article/68963) 学习笔记
+
+<!-- more -->
 
 ### 事务的隔离级别
 
