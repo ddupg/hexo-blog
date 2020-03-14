@@ -1,4 +1,4 @@
-# ddupg.github.io
+# Ddupg's Blog
 
 该项目是使用Hexo NexT主题实现的Github Pages博客。
 
