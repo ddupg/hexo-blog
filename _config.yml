@@ -99,8 +99,8 @@ theme: next
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: https://github.com/ddupg/ddupg.github.io
-  branch: master
+  repo: https://github.com/ddupg/blog
+  branch: gh-pages
 
 # index2 generator是否包含官方的hexo-generator-index，默认true（包含）
 index2_include_index: true # defult is true
