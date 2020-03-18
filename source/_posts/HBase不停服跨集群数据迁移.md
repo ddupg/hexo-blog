@@ -56,7 +56,7 @@ snapshot 'ns:table1', 'ns_table1_snapshot'
 使用`ExportSnapshot`将snapshot从srv复制到prc集群
 
 ```
-./bin/hbase org.apache.hadoop.hbase.snapshot.ExportSnapshot -snapshot ns_table1_snapshot -mappers 100 -export-to-hbase98 -copy-to hdfs://prc/hbase/prc
+./bin/hbase --config /path/to/conf org.apache.hadoop.hbase.snapshot.ExportSnapshot -copy-from hdfs://srv/hbase/srv -copy-to hdfs://prc/hbase/prc -snapshot ns_table1_snapshot -mappers 100 -bandwidth 512 -overwrite >> copy.log 2>&1 &
 ```
 
 **4. 在prc集群使用snapshot生成表**
