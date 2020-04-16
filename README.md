@@ -5,6 +5,8 @@
 ## 依赖
 
 ```
+npm install hexo-cli -g
+
 npm install hexo --save
 npm install hexo-generator-searchdb # 搜索
 npm install hexo-generator-sitemap --save # 生成sitemap
