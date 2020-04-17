@@ -3,7 +3,7 @@
   <entry>
     <title>HBase: SCP &amp; TRSP</title>
     <url>/blog/2020/04/15/SCP&amp;TRSP/</url>
-    <content><![CDATA[<p>最近在组内进行的一次SCP和TRSP两个Procedure执行过程的分享，在这里记录一下，懒得去整理出文章了 😄</p>
+    <content><![CDATA[<p>最近在组内进行的一次SCP和TRSP两个Procedure执行过程的分享，在这里记录一下，懒得去整理出文章了 😜</p>
 <a id="more"></a>
 <h2 id="AMv2">AMv2</h2>
 <h3 id="比较重要的类">比较重要的类</h3>
