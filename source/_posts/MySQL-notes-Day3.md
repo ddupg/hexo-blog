@@ -21,7 +21,7 @@ categories:
 
 ### 事务隔离的实现
 
-![](/images/MySQL_notes/day3-tx-readview.png)
+![](day3-tx-readview.png)
 
 在 MySQL 中，实际上每条记录在更新的时候都会同时记录一条回滚操作，通过回滚操作，都可以得到前一个状态的值。在查询这条记录的时候，不同时刻启动的事务会有不同的 read-view，要得到 read-view A 的值，就要依次执行图中所有的回滚操作。
 

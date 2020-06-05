@@ -5,11 +5,15 @@ tags:
 categories: HBase
 ---
 
+最近在组内进行的一次SCP和TRSP两个Procedure执行过程的分享，在这里记录一下，懒得去整理出文章了 :stuck_out_tongue_winking_eye:
+
+<!-- more -->
+
 ## AMv2
 
 ### 比较重要的类
 
-![AMv2主要的类](../images/SCP/amv2.png)
+![AMv2主要的类](amv2.png)
 
 #### AssignmentManager
 
@@ -31,7 +35,7 @@ categories: HBase
 
 用于多个Procedure等待某个依赖的事件，在AMv2中，主要的就是等待Region的状态变化。
 
-![ProcedureEvent](../images/SCP/ProcedureEvent.png)
+![ProcedureEvent](ProcedureEvent.png)
 
 事件状态就两种：
 - ready: 某个事件已准备好，可以继续执行
@@ -93,7 +97,7 @@ if (env.getAssignmentManager().waitMetaLoaded(this)) {
 
 **但这里好像使用AssignmentManager.metaAssignEvent更合适**。因为meatLoadedEvent只有在Master启动之后才会触发一次，metaAssignEvent在Master启动和每次meta region open都会触发，所以metaAssignEvent来代表meta region可用更合适一些。
 
-![SCP流程图](../images/SCP/SCP.png)
+![SCP流程图](SCP.png)
 
 - START: 没有什么实际操作，根据RS上是否有meta表的region，来判断下一步的状态
 - SPLIT_META_LOGS: split meta表的WAL
@@ -138,7 +142,7 @@ if (env.getAssignmentManager().waitMetaLoaded(this)) {
 
 ### 状态流转
 
-![TRSP状态简图](../images/SCP/TRSP-simple.png)
+![TRSP状态简图](TRSP-simple.png)
 
 可以看出来，TRSP中的5个状态形成一个环，通过initialState和lastState两个状态判断入环和出环的状态。
 
@@ -150,7 +154,7 @@ MOVE/REOPEN: CLOSE -> CONFIRM_CLOSE -> GET_ASSIGN_CANDIDATE -> OPEN -> CONFIRM_O
 
 简图中一些异常情况下的状态流转没有展示出来，比如如果close失败，会再将region open，然后再close，就会在环上转圈。就是说执行过程中出现问题，就会在环上循环执行，直到满足条件达到lastState最终出环。
 
-![TRSP状态图](../images/SCP/TRSP.png)
+![TRSP状态图](TRSP.png)
 
 **准备工作**
 
@@ -193,11 +197,23 @@ MOVE/REOPEN: CLOSE -> CONFIRM_CLOSE -> GET_ASSIGN_CANDIDATE -> OPEN -> CONFIRM_O
    1. 如果非default region，ABNORMALLY_CLOSED可以被当作CLOSE处理，直接结束掉。只有开启了read region replicas功能才有这样的region。非default region不接收写操作，所以即使非正常close也不会造成数据丢失。
    2. Region close异常，需要再open之后再正常close，保证数据不会丢失。原因和CONFIRM_OPENED里的逻辑类似，比如merge/split region的时候，要先close region，如果失败了，则必须先恢复region再重新close，避免数据丢失。
 
+### 问题
+
+**region merge/split是怎么处理的？**
+
+region merge/split分别是由MergeTableRegionsProcedure和SplitTableRegionProcedure来执行的，它们步步骤都可以拆分成region assign/unassign，也就会拆成不同的TRSP去执行。
+
+以 region split为例
+
+1. close父region（unassign）
+2. 处理好子region的信息保存之后
+3. open子region（assign）
+
 ### RegionRemoteProcedureBase
 
 RegionRemoteProcedureBase是OpenRegionProcedure和CloseRegionProcedure的父类，实现了基本的RPC相关功能。RegionRemoteProcedureBase与TRSP的配合主要也是利用了ProcedureEvent机制。
 
-![RegionRemoteProcedureBase时序图](../images/SCP/RegionRemoteProcedureBase.png)
+![RegionRemoteProcedureBase时序图](RegionRemoteProcedureBase.png)
 
 1. addOperationToNode方法就是将RPC操作封装起来，放到一个集合中等待执行。
 2. 执行当前Region的ProcedureEvent.suspend操作，等待RPC执行完毕之后唤醒。
@@ -215,4 +231,3 @@ RegionInfo -> AM.regionStates (类型 RegionStates) -> RegionStates.regionMap (�
 **RS重启导致没有RPC回调，或者Master重启之后event队列丢失 怎么办？**
 
 RegionRemoteProcedureBase有个超时限制，超时之后重新再执行一次。
-

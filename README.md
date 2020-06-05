@@ -27,3 +27,4 @@ npm install git+ssh://git@github.com:ddupg/hexo-custom-category.git
 - [Hexo博客添加Bilibili视频标签](https://normalhh.com/2016/01/22/Hexo%E5%8D%9A%E5%AE%A2%E6%B7%BB%E5%8A%A0Bilibili%E8%A7%86%E9%A2%91%E6%A0%87%E7%AD%BE/)
 - [首页过滤文章插件](https://github.com/Jamling/hexo-generator-index2)
 - [Hexo添加自定义分类菜单项并定制页面布局](https://finisky.github.io/2019/02/24/customizedcategory/)
+- [emoji表情映射表·](https://www.webfx.com/tools/emoji-cheat-sheet/)

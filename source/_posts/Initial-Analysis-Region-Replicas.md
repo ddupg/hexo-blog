@@ -48,7 +48,7 @@ HBase默认的就是`Consistency.STRONG`强一致性模型，与之前的模型�
 - 另一方面，client可以自行决定是否需要读取最新数据，自行决定使用哪一种一致性来满足功能需求。
 - client依然会读到乱序的数据，比如多次请求发往了不同的region。目前并没有类似于事务的东西来解决这个问题。
 
-![Timeline Consistency](/images/InitialAnalysisRegionReplicas/timeline_consistency.png)
+![Timeline Consistency](timeline_consistency.png)
 
 根据上图我们来更好的理解TIMELINE的语义。首先client1按顺序写了x=1,x=2,x=3，primary region也按写入顺序处理，并将WAL同步给其他secondary region（一种数据同步方式，后面会再讲）。在图中注意到，replica_1只接收到两次更新，所以最终数据是x=2，replica_2只接收到1次更新，数据是x=1。
 
@@ -58,17 +58,17 @@ HBase默认的就是`Consistency.STRONG`强一致性模型，与之前的模型�
 
 ### 数据模型
 
-![一个region replication为2的表在meta表中的列](/images/InitialAnalysisRegionReplicas/meta.png "一个region replication为2的表在meta表中的列")
+![一个region replication为2的表在meta表中的列](meta.png "一个region replication为2的表在meta表中的列")
 
 在上图中，是一个region replication为2的表在meta表中info列族下的列，可以看到有一些名为info:xxx_0001的列，这些列存储的数据就是replica_id=1的secondary region的数据。同理，当region的备份数量更多时，meta表中名为info:xxx_0002、info:xxx_0003的列存储的则为replica_id为2、3的secondary region的数据。
 
 明白了meta表中是如何存储secondary region数据，client要获取secondary region所在的RegionServer自然也简单，多解析几个server_xxxx的列便可以了。
 
-![client访问secondary region](/images/InitialAnalysisRegionReplicas/client-read-replicas.png "client访问secondary region")
+![client访问secondary region](client-read-replicas.png "client访问secondary region")
 
 上图展示的是client访问secondary region的示意图。HBase的读请求有两种，Get和Scan。对于Get这种无状态的请求，每次RPC对server端来说都是一次独立的请求。client端的用户可以多次超时重试，直到获取到数据；也可以并发请求多个replica，选择率先返回的数据；还可以使用TIMELINE Read，请求primary region超时之后再请求其他secondary region。但对于Scan这种有状态的请求，一次scan可能与同一个region交互多次，也可能跨多个region多个RegionServer请求数据，server端会记录每个scan的状态数据，那么一次scan产生的多次RPC便不能随意地发给所有的replica。
 
-![client scan过程](/images/InitialAnalysisRegionReplicas/client_scan_replicas.png "client scan过程")
+![client scan过程](client_scan_replicas.png "client scan过程")
 
 上图展示的是client执行一个跨region的scan过程，假设当前表有2个逻辑region（Region_A和Region_B），region的起始区间分别为[a, d)、[d, f)，且该表的region replication为2，即每个逻辑region都有一主一备，4个region分布在4个RegionServer上。当我们执行一次scan操作，设置cacheing为2（每次RPC最多获取2个Result），则scan至少进行4次RPC，图中连线则表示每次RPC，连线上的数字表示RPC的顺序编号，虚线表示RPC超时或返回太慢结果没有被采用。可以看到当client要进行第1次RPC时，将请求同时发给了Region_A的主备2个region，因为此时server端是没有任何关于此次scan的状态数据，client可以选择率先返回响应的region进行后续的RPC交互。当第2次RPC时便不可以随意选择region了，因为Region_A_primary存储了此次scan的状态数据，而Region_A_replica_1没有，如果请求Region_A_replica_1则只会抛出异常。当第2次RPC结束，已经获取了Region_A中的全部数据，便可以清理掉Region_A_primary中存储的状态数据了。当第3次RPC时，和第1次时情况有些类似，server端暂时没有存储scan的状态数据了，client便可以像第1次RPC一样，将请求同时发给了Region_A的主备2个region。第4次RPC则像第2次一样。总结一下：当scan进行TIMELINE Read时，只有对每个逻辑region的第1次rpc可以任意选择region请求。
 
@@ -78,7 +78,7 @@ HBase默认的就是`Consistency.STRONG`强一致性模型，与之前的模型�
 
 secondary region要支持读请求，则必然要有数据，而secondary region又不支持写请求，那么数据是哪来的呢？
 
-![RegionServer 内部结构](/images/InitialAnalysisRegionReplicas/rs-structure.png "RegionServer 内部结构")
+![RegionServer 内部结构](rs-structure.png "RegionServer 内部结构")
 
 从HBase的数据模型上看，数据主要分为两部分：MemStore和HFile。HFile存储于HDFS上，secondary region只要及时获知HFile的变化便可以获取。但MemStore存在于内存，却只有primary region持有。以下便介绍两种secondary region同步数据的方式。
 
@@ -94,7 +94,7 @@ secondary region要支持读请求，则必然要有数据，而secondary region
 
 HBase有提供集群间replication功能，利用WAL在多个集群之间同步数据。在HBase-1.1+版本中，便利用replication在集群内部同步数据，将实时写入的WAL同步到secondary region。
 
-![Asynchronous Replication示意图](/images/InitialAnalysisRegionReplicas/region_replica_replication.png "Asynchronous Replication 示意图")
+![Asynchronous Replication示意图](region_replica_replication.png "Asynchronous Replication 示意图")
 
 如上图中所示，通过实现一个特殊的`ReplicationEndpoint`便可以将WAL的数据同步给集群中的其他RegionServer。如此primary region MemStore中的数据，也通过replication实时同步到secondary region，从secondary region中也可以读到primary region还没有flush到HFile的数据。所以利用`Asnyc WAL replication`的同步方式比上面讲到的`StoreFile Refresher`同步方式具有更低的同步延迟。
 
